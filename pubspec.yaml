@@ -1,6 +1,6 @@
 name: epub_core
 description: Pure Dart EPUB 2 and 3 parsing with metadata, reading order, navigation, covers, and lazy resource access for native and web apps.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/TasteInsight/epub_core
 issue_tracker: https://github.com/TasteInsight/epub_core/issues
 topics:
@@ -11,9 +11,14 @@ environment:
   sdk: '>=3.12.0 <4.0.0'
 dependencies:
   archive: ^4.5.2
+  crypto: ^3.0.7
+  csslib: ^1.0.2
   html: ^0.15.7
   path: ^1.9.1
+  petitparser: ^7.0.2
   xml: ^7.0.1
 dev_dependencies:
+  # Dart 3.12 ships the frontend server as an AOT snapshot.
+  frontend_server_client: ^4.0.0
   lints: ^6.1.0
   test: ^1.30.0

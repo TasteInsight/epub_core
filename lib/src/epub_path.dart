@@ -1,44 +1,84 @@
 import 'package:path/path.dart' as path;
 
-import 'models.dart';
+import 'errors.dart';
 
 /// URI resolution shared by manifest, navigation and document resources.
 abstract final class EpubPath {
+  /// Parses a URI and reports malformed input through the EPUB error contract.
+  static Uri parse(String value) {
+    try {
+      if (RegExp(r'%(?![0-9a-fA-F]{2})').hasMatch(value)) {
+        throw const FormatException('Invalid percent escape.');
+      }
+      return Uri.parse(value);
+    } on FormatException catch (error) {
+      throw EpubException(
+        EpubErrorCode.invalidUri,
+        error.message,
+        path: value,
+        offset: error.offset,
+      );
+    }
+  }
+
   /// Resolves [reference] against a root-relative document URI.
   static String resolve(String documentHref, String reference) {
     try {
-      return Uri.parse(documentHref).resolve(reference.trim()).toString();
-    } on FormatException {
+      final base = parse(documentHref);
+      final target = parse(reference.trim());
+      if (base.hasScheme ||
+          base.hasAuthority ||
+          target.hasScheme ||
+          target.hasAuthority) {
+        return base.resolveUri(target).toString();
+      }
+      // OCF URL resolution is rooted at an abstract container. An absolute base
+      // gives RFC/URL dot-segment processing its required root-clamping behavior.
+      final root = Uri.parse('epub://container/');
+      final resolved = root.resolveUri(base).resolveUri(target).toString();
+      return resolved.substring('epub://container/'.length);
+    } on EpubException {
+      rethrow;
+    } on FormatException catch (error) {
       throw EpubException(
-        EpubErrorCode.invalidPackage,
-        'Invalid resource URI.',
+        EpubErrorCode.invalidUri,
+        error.message,
         path: reference,
+        offset: error.offset,
       );
     }
   }
 
   /// Whether a reference points outside the publication.
   static bool isExternal(String href) {
-    final uri = Uri.parse(href);
-    return uri.hasScheme || uri.hasAuthority || uri.path.startsWith('/');
+    final uri = parse(href);
+    return uri.hasScheme || uri.hasAuthority;
   }
 
   /// The encoded fragment, for a consumer to decode exactly once.
   static String? fragment(String href) {
-    final uri = Uri.parse(href);
+    final uri = parse(href);
     return uri.hasFragment ? uri.fragment : null;
   }
 
   /// Converts a resource URI to a decoded ZIP name, excluding query/fragment.
-  /// Returns null for external, malformed or escaping paths.
+  /// Returns null for external or empty paths; malformed URIs throw invalidUri.
   static String? archivePath(String href) {
+    if (isExternal(href)) return null;
     try {
-      if (isExternal(href)) return null;
-      return normalizeArchivePath(Uri.decodeComponent(Uri.parse(href).path));
-    } on FormatException {
-      return null;
+      return normalizeArchivePath(
+        Uri.decodeComponent(parse(resolve('', href)).path),
+      );
+    } on EpubException {
+      rethrow;
+    } on FormatException catch (error) {
+      throw EpubException(EpubErrorCode.invalidUri, error.message, path: href);
     } on ArgumentError {
-      return null;
+      throw EpubException(
+        EpubErrorCode.invalidUri,
+        'Invalid URI path encoding.',
+        path: href,
+      );
     }
   }
 

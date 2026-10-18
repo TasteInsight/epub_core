@@ -3,26 +3,35 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 
-import 'epub_path.dart';
-import 'models.dart';
+import '../epub_path.dart';
+import '../errors.dart';
+import '../limits.dart';
+import '../model/container.dart';
+import 'zip_input.dart';
 
 /// In-memory ZIP index. Resources are decompressed on first read.
 class ResourceArchive {
-  ResourceArchive(List<int> bytes, EpubLimits limits) {
+  ResourceArchive(List<int> bytes, this.limits) {
     if ([
       limits.maxArchiveBytes,
       limits.maxEntries,
       limits.maxEntryBytes,
       limits.maxUncompressedBytes,
+      limits.maxXmlDepth,
+      limits.maxXmlNodes,
+      limits.maxEntityExpansionBytes,
     ].any((limit) => limit <= 0)) {
       throw ArgumentError('EPUB resource limits must be positive.');
+    }
+    if (limits.maxCachedBytes < 0) {
+      throw ArgumentError('maxCachedBytes must be non-negative.');
     }
     if (bytes.length > limits.maxArchiveBytes) {
       _limit('Archive exceeds maxArchiveBytes.');
     }
     try {
       final directory = ZipDirectory()
-        ..read(InputMemoryStream(Uint8List.fromList(bytes)));
+        ..read(InputMemoryStream(prepareZipInput(bytes, limits)));
       if (directory.filePosition < 0 ||
           directory.fileHeaders.length !=
               directory.totalCentralDirectoryEntries ||
@@ -83,10 +92,25 @@ class ResourceArchive {
     }
   }
 
+  final EpubLimits limits;
+  int _cachedBytes = 0;
   final _entries = <String, ZipFileHeader>{};
   final _caseIndex = <String, String?>{};
   final _cache = <String, Uint8List>{};
-  final encryptedPaths = <String>{};
+  List<EpubResourceInfo> get resources => List.unmodifiable(
+    _entries.entries.map(
+      (entry) => EpubResourceInfo(
+        path: entry.key,
+        href: Uri(path: entry.key).toString(),
+        size: entry.value.uncompressedSize,
+        compressedSize: entry.value.compressedSize,
+      ),
+    ),
+  );
+  void clearCache() {
+    _cache.clear();
+    _cachedBytes = 0;
+  }
 
   String? pathFor(String href) {
     final name = EpubPath.archivePath(href);
@@ -106,8 +130,7 @@ class ResourceArchive {
       );
     }
     final entry = _entries[name]!;
-    if (encryptedPaths.contains(name) ||
-        (entry.generalPurposeBitFlag & 1) != 0) {
+    if ((entry.generalPurposeBitFlag & 1) != 0) {
       throw EpubException(
         EpubErrorCode.encryptedResource,
         'Encrypted or obfuscated resources require a separate decoder.',
@@ -120,7 +143,12 @@ class ResourceArchive {
     final name = pathFor(href);
     if (name == null) return null;
     ensureReadable(href);
-    return _cache.putIfAbsent(name, () {
+    final cached = _cache.remove(name);
+    if (cached != null) {
+      _cache[name] = cached;
+      return cached;
+    }
+    final result = (() {
       try {
         final entry = _entries[name]!;
         // archive bounds decompression to the declared size, including forged
@@ -150,12 +178,24 @@ class ResourceArchive {
           path: name,
         );
       }
-    });
+    })();
+    if (result.length <= limits.maxCachedBytes) {
+      while (_cachedBytes + result.length > limits.maxCachedBytes &&
+          _cache.isNotEmpty) {
+        _cachedBytes -= _cache.remove(_cache.keys.first)!.length;
+      }
+      _cache[name] = result;
+      _cachedBytes += result.length;
+    }
+    return result;
   }
 
   String? readText(String href) {
     final bytes = read(href);
-    if (bytes == null) return null;
+    return bytes == null ? null : decodeText(bytes, href);
+  }
+
+  static String decodeText(Uint8List bytes, String href) {
     try {
       final little = bytes.length >= 2 && bytes[0] == 0xff && bytes[1] == 0xfe;
       final big = bytes.length >= 2 && bytes[0] == 0xfe && bytes[1] == 0xff;
@@ -169,13 +209,24 @@ class ResourceArchive {
           throw const FormatException('Truncated UTF-16.');
         }
         final data = ByteData.sublistView(bytes);
-        return String.fromCharCodes([
+        final units = <int>[
           for (var index = offset; index < bytes.length; index += 2)
             data.getUint16(
               index,
               little || inferredLittle ? Endian.little : Endian.big,
             ),
-        ]);
+        ];
+        for (var i = 0; i < units.length; i++) {
+          final unit = units[i];
+          if (unit >= 0xd800 && unit <= 0xdbff) {
+            if (++i >= units.length || units[i] < 0xdc00 || units[i] > 0xdfff) {
+              throw const FormatException('Unpaired UTF-16 surrogate.');
+            }
+          } else if (unit >= 0xdc00 && unit <= 0xdfff) {
+            throw const FormatException('Unpaired UTF-16 surrogate.');
+          }
+        }
+        return String.fromCharCodes(units);
       }
       return utf8.decode(bytes);
     } on FormatException catch (error) {

@@ -98,3 +98,10 @@ String encryption(String path, String algorithm) =>
 <encryption xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
 <EncryptedData xmlns="http://www.w3.org/2001/04/xmlenc#"><EncryptionMethod Algorithm="$algorithm"/>
 <CipherData><CipherReference URI="$path"/></CipherData></EncryptedData></encryption>''';
+
+void addMetadata(Map<String, Object> files, String value) =>
+    files['OPS/package.opf'] = (files['OPS/package.opf'] as String)
+        .replaceFirst('</metadata>', '$value</metadata>');
+void addManifest(Map<String, Object> files, String value) =>
+    files['OPS/package.opf'] = (files['OPS/package.opf'] as String)
+        .replaceFirst('</manifest>', '$value</manifest>');

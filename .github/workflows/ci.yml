@@ -20,8 +20,26 @@ jobs:
         with:
           sdk: ${{ matrix.sdk }}
       - run: dart pub get
-      - run: dart format --output=none --set-exit-if-changed lib test example
+      - run: dart format --output=none --set-exit-if-changed lib test example tool
       - run: dart analyze --fatal-infos
       - run: dart test
       - run: dart test --platform chrome
       - run: dart pub publish --dry-run
+      - run: dart pub downgrade
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
+  corpus:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.12.2'
+      - run: dart pub get
+      - uses: actions/checkout@v4
+        with:
+          repository: w3c/epub-tests
+          ref: 54092b4233253e9aac80e93ec4782b380b4b3403
+          path: .corpus
+      - run: dart run tool/check_corpus.dart .corpus/tests /tmp/epub-report.json

@@ -218,10 +218,8 @@ void main() {
       ..['OPS/font.otf'] = [1, 2, 3];
     final book = EpubBook.fromBytes(zipFiles(files));
     expect(book.readString(book.spine.first.item.href), contains('Hello'));
-    expect(
-      () => book.readBytes('OPS/font.otf'),
-      throwsA(errorCode(EpubErrorCode.encryptedResource)),
-    );
+    expect(book.readRawBytes('OPS/font.otf'), [1, 2, 3]);
+    expect(book.readBytes('OPS/font.otf'), hasLength(3));
   });
 
   test('encrypted spine content reports encryption instead of mojibake', () {
@@ -231,7 +229,8 @@ void main() {
         'http://www.w3.org/2001/04/xmlenc#aes256-cbc',
       );
     expect(
-      () => EpubBook.fromBytes(zipFiles(files)),
+      () =>
+          EpubBook.fromBytes(zipFiles(files)).readString('OPS/text/one.xhtml'),
       throwsA(errorCode(EpubErrorCode.encryptedResource)),
     );
   });
@@ -322,4 +321,54 @@ void main() {
     final book = await Isolate.run(() => EpubBook.fromBytes(bytes));
     expect(book.readString(book.spine.first.item.href), contains('Hello'));
   }, testOn: 'vm');
+  test('manifest URI identity is independent of resource existence', () {
+    for (final present in [false, true]) {
+      final files = epubFiles();
+      addManifest(
+        files,
+        '<item id="optional" href="missing%20image.png" media-type="image/png"/>',
+      );
+      if (present) files['OPS/missing image.png'] = [1];
+      final book = EpubBook.fromBytes(zipFiles(files));
+      for (final href in [
+        'OPS/missing%20image.png',
+        '/OPS/missing%20image.png',
+        'OPS/missing%20image.png?q=1#f',
+      ]) {
+        expect(book.itemByHref(href)?.id, 'optional');
+      }
+    }
+  });
+  test('guide cover pages retain bounded HTML recovery', () {
+    final files = epubFiles();
+    files['OPS/package.opf'] = (files['OPS/package.opf'] as String)
+        .replaceAll('properties="cover-image"', '')
+        .replaceAll('<meta name="cover" content="cover"/>', '')
+        .replaceFirst(
+          '</manifest>',
+          '<item id="cover-page" href="cover.html" media-type="text/html"/></manifest>',
+        )
+        .replaceFirst(
+          '</package>',
+          '<guide><reference type="cover" href="cover.html"/></guide></package>',
+        );
+    files['OPS/cover.html'] =
+        '<!doctype html><html><head><base href="images/"></head><body><img src="cover.png"></body></html>';
+    final book = EpubBook.fromBytes(zipFiles(files));
+    expect(book.cover?.href, 'OPS/images/cover.png');
+    expect(book.diagnostics.any((d) => d.code == 'htmlCoverRecovery'), isTrue);
+    files['OPS/cover.html'] =
+        '<html><body><br>${'<div>' * 2000}<img src="images/cover.png">';
+    final limited = EpubBook.fromBytes(
+      zipFiles(files),
+      limits: const EpubLimits(maxXmlDepth: 16),
+    );
+    expect(limited.cover, isNull);
+    expect(
+      limited.diagnostics.any(
+        (d) => d.code == 'resourceLimit' && d.path == 'OPS/cover.html',
+      ),
+      isTrue,
+    );
+  });
 }
