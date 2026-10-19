@@ -62,7 +62,7 @@
 
 `EpubException` 保持 `FormatException` 兼容，提供错误码、资源路径和可用的 XML 坐标。
 `locationSource` 区分原始资源、展开后的 XML 和实体替换文本，`entityName` 标识对应实体，错误坐标以数值保存。
-`container.diagnostics` 持有容器问题并随 rendition 共享；`diagnostics` 提供结构化可恢复问题；`warnings` 保留字符串列表兼容视图。
+`container.diagnostics` 持有容器问题并随 rendition 共享；`diagnostics` 提供结构化可恢复问题；`warnings` 将这些记录转为字符串列表。
 目录及 guide 封面页使用同一 HTML5 解析函数，并检查 token 数量、节点数和深度。目录与辅助 META-INF XML 损坏时保留可读取的 spine 和诊断，加密声明损坏、必要结构缺失或引用循环时抛出 `EpubException`。
 加密声明缺少资源路径时抛出异常。带资源路径的声明保存在 `container.encryption`；需要外部解码器的资源在 `readBytes` 中报告 `encryptedResource`，`readRawBytes` 返回原始载荷。
 资源字节查询遇到缺失或远程资源时返回 `null`；URI 语法错误抛出错误码为 `invalidUri` 的 `EpubException`。
