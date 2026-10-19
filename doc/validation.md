@@ -31,7 +31,7 @@ dart pub publish --dry-run
 API 测试覆盖 URI 错误、媒体叠加的 ID 与 URI 查找、容器与 rendition 的错误记录、可选文档恢复及错误坐标来源。
 规模输入包含 4,000 作者及其 refinement；损坏输入测试包含固定种子的 500 组 ZIP 字节变异。
 
-CI 配置 Dart 3.12.2 与 stable，执行上述包检查，并运行固定提交的 W3C 语料任务。
+CI 的格式检查固定使用 Dart 3.12.2。3.12.2 与 stable 独立执行静态分析、VM、Chrome、发布预检及最低依赖检查，并运行固定提交的 W3C 语料任务。
 
 ## 外部语料
 

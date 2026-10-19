@@ -118,9 +118,11 @@ XML 错误保留资源路径，以及底层解析器可提供的 `offset`、`lin
 
 最低 Dart SDK 为 3.12。ZIP、XML、HTML、CSS、散列和声明语法分别复用
 `archive`、`xml`、`html`、`csslib`、`crypto`、`petitparser`。
+代码格式统一使用 Dart 3.12.2；CI 同时使用 3.12.2 和最新 stable 检查兼容性。
 
 ```sh
 dart pub get
+dart format --output=none --set-exit-if-changed lib test example tool
 dart analyze --fatal-infos
 dart test
 dart test --platform chrome

@@ -12,6 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         sdk: ['3.12.2', stable]
     steps:
@@ -20,7 +21,9 @@ jobs:
         with:
           sdk: ${{ matrix.sdk }}
       - run: dart pub get
-      - run: dart format --output=none --set-exit-if-changed lib test example tool
+      - name: Check formatting (Dart 3.12.2)
+        if: matrix.sdk == '3.12.2'
+        run: dart format --output=none --set-exit-if-changed lib test example tool
       - run: dart analyze --fatal-infos
       - run: dart test
       - run: dart test --platform chrome
