@@ -11,4 +11,4 @@ export 'src/model/metadata.dart';
 export 'src/model/navigation.dart';
 export 'src/model/package.dart';
 export 'src/model/xml_source.dart';
-export 'src/parsing/media_overlay.dart' show parseSmilClock;
+export 'src/parsing/media_overlay_parser.dart' show parseSmilClock;

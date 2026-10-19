@@ -30,7 +30,7 @@ dom.Document parseEpubHtml(
   var count = 0;
   while (stack.isNotEmpty) {
     final (node, depth) = stack.removeLast();
-    if (++count > limits.maxXmlNodes || depth > limits.maxXmlDepth) {
+    if (++count > limits.maxParseItems || depth > limits.maxDocumentDepth) {
       throw EpubException(
         EpubErrorCode.resourceLimit,
         'HTML DOM exceeds document structural limits.',
@@ -58,18 +58,18 @@ final class _BudgetedTokenizer extends HtmlTokenizer {
   bool moveNext() {
     // The parser has consumed the previous token before requesting the next.
     // Check before scanning more input, including at EOF.
-    if ((parser?.tree.openElements.length ?? 0) > limits.maxXmlDepth) {
+    if ((parser?.tree.openElements.length ?? 0) > limits.maxDocumentDepth) {
       throw EpubException(
         EpubErrorCode.resourceLimit,
-        'HTML exceeds maxXmlDepth during parsing.',
+        'HTML exceeds maxDocumentDepth during parsing.',
         path: path,
       );
     }
     final available = super.moveNext();
-    if (available && ++_tokens > limits.maxXmlNodes) {
+    if (available && ++_tokens > limits.maxParseItems) {
       throw EpubException(
         EpubErrorCode.resourceLimit,
-        'HTML token work exceeds maxXmlNodes.',
+        'HTML token work exceeds maxParseItems.',
         path: path,
       );
     }

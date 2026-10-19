@@ -364,7 +364,7 @@ void main() {
         '<html><body><br>${'<div>' * 2000}<img src="images/cover.png">';
     final limited = EpubBook.fromBytes(
       zipFiles(files),
-      limits: const EpubLimits(maxXmlDepth: 16),
+      limits: const EpubLimits(maxDocumentDepth: 16),
     );
     expect(limited.cover, isNull);
     expect(

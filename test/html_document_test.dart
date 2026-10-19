@@ -14,7 +14,7 @@ void main() {
     final document = parseEpubHtml(
       source,
       'chapter.html',
-      const EpubLimits(maxXmlDepth: 16),
+      const EpubLimits(maxDocumentDepth: 16),
     );
     expect(document.querySelectorAll('p').map((p) => p.text), ['one', 'two']);
     expect(document.querySelector('tbody td')?.text, 'cell');
@@ -26,7 +26,7 @@ void main() {
       () => parseEpubHtml(
         List.filled(500, '<p>x').join(),
         'chapter.html',
-        const EpubLimits(maxXmlNodes: 100),
+        const EpubLimits(maxParseItems: 100),
       ),
       throwsA(
         isA<EpubException>().having(
@@ -40,7 +40,7 @@ void main() {
 
   test('HTML implicit nodes are included in the returned node budget', () {
     expect(
-      () => parseEpubHtml('', 'empty.html', const EpubLimits(maxXmlNodes: 2)),
+      () => parseEpubHtml('', 'empty.html', const EpubLimits(maxParseItems: 2)),
       throwsA(
         isA<EpubException>().having(
           (e) => e.code,
@@ -58,7 +58,7 @@ void main() {
         '${List.filled(2000, '<div>').join()}<ol><li><a href="text/one.xhtml">T</a></ol>';
     final book = EpubBook.fromBytes(
       zipFiles(files),
-      limits: const EpubLimits(maxXmlDepth: 16),
+      limits: const EpubLimits(maxDocumentDepth: 16),
     );
     expect(
       book.diagnostics.any(

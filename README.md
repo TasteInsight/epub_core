@@ -108,6 +108,7 @@ XML 错误保留资源路径，以及底层解析器可提供的 `offset`、`lin
 ## 模型与资源限制
 
 资源按需解压、校验并缓存；`EpubLimits` 控制大小、数量、XML/HTML 复杂度、实体展开和缓存容量。
+`maxDocumentDepth` 限制 XML/HTML 嵌套及实体展开深度；`maxParseItems` 设置各解析阶段的计数上限。
 模型集合与资源字节为只读。解析结果支持 Dart isolate；Flutter Web 的 `compute` 使用当前事件循环。
 `clearResourceCache()` 释放共享的资源字节缓存及当前 rendition 的媒体叠加缓存。嵌套节点共享文档文本，用起止位置表示各自的源码片段。
 

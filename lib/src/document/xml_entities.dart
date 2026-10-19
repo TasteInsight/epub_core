@@ -80,7 +80,7 @@ PreparedXml expandInternalEntities(
         if (marker == '%') fail('Undefined parameter entity: $name');
         out.write(input.substring(start, end + 1));
       } else {
-        if (!active.add(name) || active.length > limits.maxXmlDepth) {
+        if (!active.add(name) || active.length > limits.maxDocumentDepth) {
           fail('Recursive internal entity: $name');
         }
         var expanded = attribute
@@ -171,10 +171,10 @@ PreparedXml expandInternalEntities(
         }
         offset = result.position;
       } else if (input.startsWith('<!ENTITY', offset)) {
-        if (++declarationCount > limits.maxXmlNodes) {
+        if (++declarationCount > limits.maxParseItems) {
           throw EpubException(
             EpubErrorCode.resourceLimit,
-            'DTD exceeds maxXmlNodes.',
+            'DTD exceeds maxParseItems.',
             path: path,
           );
         }
@@ -201,10 +201,10 @@ PreparedXml expandInternalEntities(
         final parts = result.value;
         final target = attributes.putIfAbsent(parts[2] as String, () => []);
         for (final attribute in parts[3] as List<DtdAttribute>) {
-          if (++declarationCount > limits.maxXmlNodes) {
+          if (++declarationCount > limits.maxParseItems) {
             throw EpubException(
               EpubErrorCode.resourceLimit,
-              'DTD exceeds maxXmlNodes.',
+              'DTD exceeds maxParseItems.',
               path: path,
             );
           }
@@ -218,7 +218,7 @@ PreparedXml expandInternalEntities(
         if (end < 0) fail('Malformed parameter entity reference.');
         final entityName = input.substring(offset + 1, end);
         if (!activeParameters.add(entityName) ||
-            activeParameters.length > limits.maxXmlDepth) {
+            activeParameters.length > limits.maxDocumentDepth) {
           fail('Recursive parameter entity.');
         }
         final value = parameters[entityName];

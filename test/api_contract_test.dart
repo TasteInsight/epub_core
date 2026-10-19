@@ -94,7 +94,7 @@ void main() {
           '<html><body>${List.filled(2000, '<div>').join()}text${List.filled(2000, '</div>').join()}</body></html>';
     final book = EpubBook.fromBytes(
       zipFiles(files),
-      limits: const EpubLimits(maxXmlDepth: 16),
+      limits: const EpubLimits(maxDocumentDepth: 16),
     );
     expect(
       () => book.readHtmlDocument('OPS/text/one.xhtml'),

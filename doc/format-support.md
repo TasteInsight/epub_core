@@ -45,16 +45,18 @@
 - XML 在构建 DOM 前检查深度和事件数量，DTD 属性应用次数计入同一数量限制。实体替换及默认属性生成的文本共用累计容量限制，CDATA/注释中的引用保持文本语义。
 - 标准 XHTML 实体采用离线映射；通用外部实体声明报告 `invalidXml`。外部 DTD 标识保留在 XML 中，网络加载由消费应用在库外处理。
 
-| 限制项 | 默认值 |
-| --- | --- |
-| 压缩输入 | 256 MiB |
-| ZIP 条目数 | 10,000 |
-| 单条目解压大小 | 64 MiB |
-| 总声明解压大小 | 512 MiB |
-| 解压缓存 | 64 MiB |
-| XML / HTML 深度 | 256 |
-| XML 事件/DTD 声明及属性应用次数、HTML token/返回节点数 | 250,000 |
-| 实体与 DTD 默认文本展开大小 | 1 MiB（按 UTF-16 存储量保守计数） |
+| 限制项 | `EpubLimits` 字段 | 默认值 |
+| --- | --- | --- |
+| 压缩输入 | `maxArchiveBytes` | 256 MiB |
+| ZIP 条目数 | `maxEntries` | 10,000 |
+| 单条目解压大小 | `maxEntryBytes` | 64 MiB |
+| 总声明解压大小 | `maxUncompressedBytes` | 512 MiB |
+| 解压缓存 | `maxCachedBytes` | 64 MiB |
+| XML / HTML 嵌套及实体展开深度 | `maxDocumentDepth` | 256 |
+| 各解析阶段的计数上限 | `maxParseItems` | 250,000 |
+| 实体与 DTD 默认文本展开大小 | `maxEntityExpansionBytes` | 1 MiB（按 UTF-16 存储量保守计数） |
+
+`maxParseItems` 分别用于 DTD 实体声明与属性定义、XML 事件与 DTD 属性应用、HTML token、返回的 HTML DOM 节点。各阶段独立计数，共用这个上限。
 
 这些值通过 `EpubLimits` 配置。进程实际内存还包含压缩输入、解析模型、DOM 和调用者持有的数据。
 
@@ -101,7 +103,7 @@ W3C 语料基线：`w3c/epub-tests`，提交 `54092b4233253e9aac80e93ec4782b380b
 ## 模块职责与依赖
 
 - `model/`：只读出版物模型，按容器、元数据、OPF、导航、SMIL 和源码片段分类。
-- `parsing/`：格式读取函数，接收资源访问或文本、路径、限制，返回模型。
+- `parsing/`：格式读取函数，接收资源访问或文本、路径、限制，返回模型；文件按 `*_parser.dart` 命名。
 - `document/`：XML/HTML 解析适配及 XML 实体处理，集中管理文档复杂度限制。
 - `archive/`：ZIP 索引、校验、文本解码与有界字节缓存。
 - `epub_book.dart`：组合容器、OPF 和导航，维护 rendition 资源访问与媒体叠加缓存。

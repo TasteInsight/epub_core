@@ -17,8 +17,8 @@ class ResourceArchive {
       limits.maxEntries,
       limits.maxEntryBytes,
       limits.maxUncompressedBytes,
-      limits.maxXmlDepth,
-      limits.maxXmlNodes,
+      limits.maxDocumentDepth,
+      limits.maxParseItems,
       limits.maxEntityExpansionBytes,
     ].any((limit) => limit <= 0)) {
       throw ArgumentError('EPUB resource limits must be positive.');

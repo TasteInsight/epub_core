@@ -285,7 +285,7 @@ void main() {
             '<!DOCTYPE root [<!ATTLIST p $declarations>]><root>${'<p/>' * 250}</root>';
       final book = EpubBook.fromBytes(
         zipFiles(files),
-        limits: const EpubLimits(maxXmlNodes: 300),
+        limits: const EpubLimits(maxParseItems: 300),
       );
       expect(
         () => book.readXmlDocument('OPS/text/one.xhtml'),

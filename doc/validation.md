@@ -60,7 +60,7 @@ dart run tool/check_corpus.dart /path/to/epub-tests/tests /path/to/epub-report.j
 
 ## 消费应用
 
-InkNode 使用本地解析包依赖进行验收：静态分析、96 项相关回归和 1 项 Widget 集成测试通过。
+InkNode EPUB 接入验收：静态分析、100 项相关回归和 1 项 Widget 集成测试通过。
 集成流程覆盖文件选择入口、EPUB 导入、SQLite 保存与重开、图片阅读、翻章、滚动与分页，以及进度保存与恢复。
 测试使用受控文件选择器和本地 SQLite，执行实际导入服务、阅读界面与导航状态。
 原生平台文件选择器交互属于设备验收范围。

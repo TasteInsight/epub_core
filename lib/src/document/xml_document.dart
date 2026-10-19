@@ -24,10 +24,10 @@ XmlDocument parseEpubXml(String source, String path, EpubLimits limits) {
       validateNesting: true,
       withLocation: true,
     )) {
-      if (++count > limits.maxXmlNodes) {
+      if (++count > limits.maxParseItems) {
         throw EpubException(
           EpubErrorCode.resourceLimit,
-          'XML exceeds maxXmlNodes.',
+          'XML exceeds maxParseItems.',
           path: path,
         );
       }
@@ -38,10 +38,10 @@ XmlDocument parseEpubXml(String source, String path, EpubLimits limits) {
             publicId.endsWith('//EN');
       }
       if (event is XmlStartElementEvent) {
-        if (++depth > limits.maxXmlDepth) {
+        if (++depth > limits.maxDocumentDepth) {
           throw EpubException(
             EpubErrorCode.resourceLimit,
-            'XML exceeds maxXmlDepth.',
+            'XML exceeds maxDocumentDepth.',
             path: path,
           );
         }
@@ -69,10 +69,10 @@ XmlDocument parseEpubXml(String source, String path, EpubLimits limits) {
           prepared.attributes[node.name.qualified] ?? <DtdAttribute>[];
       // DTD declarations also produce work and attributes during DOM construction.
       count += defaults.length;
-      if (count > limits.maxXmlNodes) {
+      if (count > limits.maxParseItems) {
         throw EpubException(
           EpubErrorCode.resourceLimit,
-          'DTD attribute applications exceed maxXmlNodes.',
+          'DTD attribute applications exceed maxParseItems.',
           path: path,
         );
       }

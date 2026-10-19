@@ -20,9 +20,9 @@ import 'model/navigation.dart';
 import 'model/package.dart';
 import 'parsing/container_parser.dart';
 import 'parsing/cover_parser.dart';
-import 'parsing/media_overlay.dart';
+import 'parsing/media_overlay_parser.dart';
 import 'parsing/metadata_parser.dart';
-import 'parsing/navigation.dart';
+import 'parsing/navigation_parser.dart';
 import 'parsing/package_parser.dart';
 import 'vocabulary.dart';
 
