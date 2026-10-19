@@ -32,7 +32,7 @@ final class EpubMetadataEntry {
   String? get scheme => attributes['scheme'];
 }
 
-/// A package, collection, or container link with its complete XML declaration.
+/// A package, collection, or container link with its XML declaration.
 final class EpubLink {
   EpubLink({
     required this.href,
@@ -69,7 +69,8 @@ final class EpubPerson {
   final String? direction;
 }
 
-/// Dublin Core convenience fields plus complete ordered metadata declarations.
+/// Title, creators and other Dublin Core fields,
+/// with metadata entries in document order.
 final class EpubMetadata {
   EpubMetadata({
     required this.title,
@@ -93,7 +94,7 @@ final class EpubMetadata {
        languages = List.unmodifiable(languages),
        subjects = List.unmodifiable(subjects);
 
-  /// Derives convenience fields from one ordered set of declarations.
+  /// Extracts the title, creators and other fields from metadata entries.
   factory EpubMetadata.fromEntries({
     required List<EpubMetadataEntry> entries,
     List<EpubLink> links = const [],

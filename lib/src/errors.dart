@@ -1,7 +1,7 @@
 /// Text against which a parser error position is measured.
 enum EpubLocationSource { resource, expandedXml, entityReplacement }
 
-/// Machine-readable failures at the EPUB boundary.
+/// Error codes returned by EPUB parsing and resource reads.
 enum EpubErrorCode {
   invalidArchive,
   invalidUri,
@@ -57,7 +57,7 @@ final class EpubException extends FormatException {
       'EpubException(${code.name}${path == null ? '' : ', $path'}${line == null ? '' : ':$line:$column'}): $message';
 }
 
-/// A recoverable parser diagnostic with a stable code and resource location.
+/// A recoverable parsing issue with an error code and resource path.
 final class EpubDiagnostic {
   const EpubDiagnostic(
     this.code,

@@ -1,5 +1,5 @@
-/// A view into one shared, parsed XML document. Text is materialized on demand;
-/// nested nodes retain offsets rather than repeated copies of their subtrees.
+/// A fragment of a parsed XML document. Nested nodes share the document text
+/// and store start/end offsets. [text] creates the substring on access.
 final class EpubXmlFragment {
   const EpubXmlFragment(this.document, this.start, this.end);
   final String document;

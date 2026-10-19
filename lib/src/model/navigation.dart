@@ -1,6 +1,7 @@
 import 'xml_source.dart';
 
-/// A TOC node. Group labels may have no [href]; fragments remain URI-encoded.
+/// A navigation entry. Group labels use a null [href];
+/// fragments remain URI-encoded.
 final class EpubNavItem {
   EpubNavItem({
     required this.title,
@@ -23,7 +24,7 @@ final class EpubNavItem {
   final List<EpubNavItem> children;
 }
 
-/// A complete XHTML nav or NCX list, retaining non-TOC navigation.
+/// An XHTML nav or NCX list with its types, title and entries.
 final class EpubNavigationSection {
   EpubNavigationSection({
     required Set<String> types,

@@ -27,7 +27,7 @@ import 'parsing/package_parser.dart';
 import 'vocabulary.dart';
 
 /// A selected rendition and its shared container resources.
-/// Parsing and resource reads perform no network or filesystem I/O.
+/// Parsing uses the supplied bytes; resource reads access the in-memory archive.
 final class EpubBook {
   factory EpubBook.fromBytes(
     List<int> bytes, {
@@ -160,7 +160,8 @@ final class EpubBook {
   }
 
   /// Original ZIP resource bytes, including obfuscated/encrypted EPUB payloads.
-  /// ZIP encryption itself is unsupported. CRC and size limits still apply.
+  /// ZIP-encrypted entries report [EpubErrorCode.encryptedResource].
+  /// Reads check CRC and size limits.
   Uint8List? readRawBytes(String href) => _archive.read(href);
 
   /// Reads resources, deobfuscating standard IDPF/Adobe font resources.
@@ -235,7 +236,8 @@ final class EpubBook {
     return source == null ? null : parseEpubXml(source, href, _archive.limits);
   }
 
-  /// HTML5 recovery is explicit; use readXmlDocument for XHTML namespace semantics.
+  /// Builds a DOM using HTML5 parsing rules.
+  /// [readXmlDocument] preserves XML namespaces.
   dom.Document? readHtmlDocument(String href) {
     final source = readString(href);
     return source == null ? null : parseEpubHtml(source, href, _archive.limits);

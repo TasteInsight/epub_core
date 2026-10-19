@@ -5,8 +5,8 @@ import 'package:archive/archive.dart';
 import 'package:epub_core/epub_core.dart';
 import 'package:path/path.dart' as p;
 
-/// Runs structural/resource ingestion against an external unpacked EPUB corpus.
-/// This does not evaluate rendering, playback, scripts, or reading-system tests.
+/// Checks container parsing, resource reads, renditions and media overlays
+/// in an external unpacked EPUB corpus.
 void main(List<String> arguments) {
   if (arguments.isEmpty || arguments.length > 2) {
     stderr.writeln(
@@ -87,7 +87,7 @@ void main(List<String> arguments) {
   final failures = results.where((result) => result['parsed'] == false).length;
   final report = {
     'scope':
-        'Structural and resource ingestion only; not reading-system conformance.',
+        'Container parsing, resource byte reads, renditions and media overlays.',
     'total': results.length,
     'parsed': results.length - failures,
     'failed': failures,

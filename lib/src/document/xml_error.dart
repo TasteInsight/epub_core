@@ -2,7 +2,7 @@ import 'package:xml/xml.dart';
 
 import '../errors.dart';
 
-/// Converts parser locations without retaining an entire failing input buffer.
+/// Copies parser error messages and positions into an [EpubException].
 EpubException xmlFailure(
   XmlException error,
   String path, {

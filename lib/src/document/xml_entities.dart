@@ -103,8 +103,8 @@ PreparedXml expandInternalEntities(
     return out.toString();
   }
 
-  // Tokenize DTD declarations with PetitParser. Quoted literals and comments
-  // remain atomic, so apparent declarations inside them cannot be activated.
+  // Tokenize DTD declarations with PetitParser, treating quoted literals and
+  // comments as single tokens.
   final quoted =
       ((char('"') & pattern('^"').star().flatten() & char('"')) |
               (char("'") & pattern("^'").star().flatten() & char("'")))

@@ -49,7 +49,7 @@ final class EpubResourceInfo {
   final int compressedSize;
 }
 
-/// Complete OCF declarations and optional META-INF XML documents.
+/// OCF declarations and optional META-INF XML documents.
 final class EpubContainer {
   EpubContainer({
     required this.sourceXml,

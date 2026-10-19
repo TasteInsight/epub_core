@@ -124,8 +124,8 @@ bool xmlIs(XmlElement node, String name, String namespace) {
   final uri = node.name.namespaceUri;
   if (uri == namespace) return true;
   if (uri != null && uri.isNotEmpty) return false;
-  // Recovery for a wholly unnamespaced document does not make a nested
-  // xmlns="" extension in a standards-namespaced document into a core element.
+  // An empty namespace matches core elements when the document root also
+  // has an empty namespace.
   final root = node.root;
   final element = root is XmlDocument
       ? root.rootElement

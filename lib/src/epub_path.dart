@@ -4,7 +4,7 @@ import 'errors.dart';
 
 /// URI resolution shared by manifest, navigation and document resources.
 abstract final class EpubPath {
-  /// Parses a URI and reports malformed input through the EPUB error contract.
+  /// Parses a URI; malformed input throws [EpubException] with invalidUri.
   static Uri parse(String value) {
     try {
       if (RegExp(r'%(?![0-9a-fA-F]{2})').hasMatch(value)) {
@@ -32,8 +32,7 @@ abstract final class EpubPath {
           target.hasAuthority) {
         return base.resolveUri(target).toString();
       }
-      // OCF URL resolution is rooted at an abstract container. An absolute base
-      // gives RFC/URL dot-segment processing its required root-clamping behavior.
+      // Resolve against a container root so parent segments stop at that root.
       final root = Uri.parse('epub://container/');
       final resolved = root.resolveUri(base).resolveUri(target).toString();
       return resolved.substring('epub://container/'.length);

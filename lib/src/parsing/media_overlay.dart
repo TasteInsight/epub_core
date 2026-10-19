@@ -63,8 +63,8 @@ EpubMediaOverlay readMediaOverlayDocument(
   return EpubMediaOverlay(href: href, sourceXml: source, body: visit(body));
 }
 
-/// Parses SMIL full/partial clock values and timecounts without floating-point
-/// conversion of fractional seconds. Returned durations have microsecond precision.
+/// Parses SMIL full/partial clock values and timecounts with integer arithmetic.
+/// Returned durations have microsecond precision.
 Duration parseSmilClock(String input, {String? path}) {
   final value = input.trim().replaceFirst(RegExp(r'^npt='), '');
   final clock = RegExp(

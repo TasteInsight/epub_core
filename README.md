@@ -30,24 +30,24 @@ void inspectBook(List<int> bytes) {
 ```
 
 `spine.item` 提供选用的内容资源；`sourceItem` 保留原始项，`fallbackChain` 记录本次遍历的回退链。
-完整 fallback 声明可从 `manifest` 各项的 `fallback` 字段查询。
-外来媒体仍可通过资源 API 访问。应用负责选择渲染器、章节分段和持久化。
+各资源的回退声明可通过 `manifest` 项的 `fallback` 字段查询。
+其他媒体类型可通过资源 API 读取。应用负责选择渲染器、章节分段和持久化。
 
 ## 出版物结构
 
 | 对象 | 内容 |
 | --- | --- |
-| `container` | 全部 rootfiles、links、加密描述和 META-INF XML |
-| `metadata` | 全部 Dublin Core、重复项、meta/refines、语言方向、属性 IRI 及 links |
-| `package` | 独立 OPF 声明模型，包含元数据、资源与阅读顺序 |
+| `container` | rootfiles、links、加密描述和 META-INF XML |
+| `metadata` | Dublin Core、重复项、meta/refines、语言方向、属性 IRI 及 links |
+| `package` | OPF 元数据、资源声明与阅读顺序 |
 | `manifest` / `spine` | 所有资源声明、阅读顺序、原始引用及 fallback |
-| `readingNavigation` | EPUB 3 全部 nav 类型，以及 NCX 的 TOC、pageList、navList |
+| `readingNavigation` | EPUB 3 nav 列表，以及 NCX 的 TOC、pageList、navList |
 | `renditionSettings` / `spine[].renditionSettings` | 全局和局部版式声明 |
 | `collections` / `bindings` / `guide` | 集合、处理器绑定与旧式导航 |
 | `mediaOverlays` | SMIL 层级、文本引用、音频片段和时钟值 |
-| `packageXml` / `resources` | 原始 OPF 与完整 ZIP 文件清单 |
+| `packageXml` / `resources` | 原始 OPF 与 ZIP 文件清单 |
 
-完整能力、资源预算和职责划分见 [格式支持说明](doc/format-support.md)，测试与外部语料结果见 [验证记录](doc/validation.md)。
+支持的格式、资源限制和应用负责的功能见 [格式支持说明](doc/format-support.md)，测试与外部语料结果见 [验证记录](doc/validation.md)。
 
 ```dart
 final book = EpubBook.fromBytes(bytes);
@@ -59,7 +59,7 @@ final cssItem = book.manifest.where((item) => item.mediaType == 'text/css').firs
 final stylesheet = cssItem == null ? null : book.readCssDocument(cssItem.href);
 ```
 
-`readXmlDocument` 使用命名空间感知 XML；`readHtmlDocument` 提供显式 HTML5 容错入口。
+`readXmlDocument` 返回保留 XML 命名空间的 DOM；`readHtmlDocument` 按 HTML5 规则构建 DOM。
 `readBytes` 自动还原 IDPF/Adobe 混淆字体；`readRawBytes` 返回原始归档载荷。
 商业 DRM 的声明和载荷可读取，解密由消费方的授权解码器完成。
 
@@ -84,24 +84,25 @@ try {
 ```
 
 模型集合与资源字节为只读。解析结果支持 Dart isolate；Flutter Web 的 `compute` 使用当前事件循环。
-`clearResourceCache()` 释放共享的资源字节缓存及当前 rendition 的媒体叠加缓存。嵌套节点源码采用共享文本片段，避免重复常驻整棵子树。
+`clearResourceCache()` 释放共享的资源字节缓存及当前 rendition 的媒体叠加缓存。嵌套节点共享文档文本，用起止位置表示各自的源码片段。
 
 ## API 与迁移
 
-媒体叠加使用明确的查找入口：
+媒体叠加可按 manifest ID 或资源 URI 读取：
 
 ```dart
 final overlay = book.readMediaOverlayById('chapter-audio');
 final sameResource = book.readMediaOverlayByHref(overlay.href);
 ```
 
-`metadata` 的便捷字段由全部声明派生，重复查询使用索引。构造元数据时优先使用
-`EpubMetadata.fromEntries`；原构造器保留给需要手动提供便捷字段的调用方。
+`metadata.title`、`metadata.creators` 等字段从元数据条目中提取。`refinementsFor` 和 `properties` 查询使用索引。
+构造元数据时优先使用 `EpubMetadata.fromEntries`；原构造器支持手动指定这些字段。
 
 容器诊断在 `container.diagnostics` 中保存，每个 rendition 的 `diagnostics` 同时包含容器与当前 rendition 的结果。
-辅助 META-INF 文档解析失败会产生诊断并保留可访问的原始资源；加密 XML 损坏或缺少资源定位会中止打开；位置明确而算法未知的资源保持受保护状态。
+辅助 META-INF 文档解析失败时，解析器记录错误并保留原始资源。加密 XML 损坏或缺少资源路径时抛出异常。
+带资源路径的加密声明保存在 `container.encryption`；`readBytes` 对需要外部解码器的资源报告 `encryptedResource`。
 XML 错误保留资源路径，以及底层解析器可提供的 `offset`、`line`、`column`；`locationSource` 标明坐标来自资源原文、展开后的 XML 或实体替换文本；后者还提供 `entityName`。
-异常只保留位置数据，调用方可通过资源 API 获取文本。
+错误坐标以数值保存，调用方可通过资源 API 获取对应文本。
 
 旧名称在 0.2 系列保留兼容入口：
 
@@ -113,7 +114,7 @@ XML 错误保留资源路径，以及底层解析器可提供的 `offset`、`lin
 | `readMediaOverlay(idOrHref)` | `readMediaOverlayById` / `readMediaOverlayByHref` |
 
 旧媒体叠加入口遇到 ID 与 URI 指向不同资源时抛出 `ambiguousReference`。
-公开模型为 `final class`，通过组合使用；类型演进由库维护，扩展数据通过原始声明读取。
+公开数据类使用 `final`。需要附加业务字段时，可定义自己的对象，并在其中保存这些模型。
 
 ## 0.1 → 0.2
 
@@ -121,10 +122,10 @@ XML 错误保留资源路径，以及底层解析器可提供的 `offset`、`lin
 
 - 加密正文的错误在 `readBytes` / `readString` 时报告，元数据和加密声明仍可解析。
 - 字体混淆资源默认返回还原后的字节；`readRawBytes` 提供原始字节。
-- 未知正文类型保留资源与诊断，消费方选择渲染能力。
+- `unsupportedSpineContent` 记录需要应用选择处理器的正文资源；资源内容和 fallback 链可供应用读取。
 - 数值版本号保留并尝试兼容处理；OCF URI 按容器根 URL 解析。
-- `navigation` 保持默认 TOC 视图，完整目录数据通过 `readingNavigation` 获取。
-- 非法 URI 统一报告 `invalidUri`；公开数据类采用 `final`，扩展使用组合包装。
+- `navigation` 保持默认 TOC 视图，其他导航列表通过 `readingNavigation` 获取。
+- URI 语法错误报告 `invalidUri`；公开数据类采用 `final`，业务扩展通过持有模型的对象实现。
 
 ## 开发
 
