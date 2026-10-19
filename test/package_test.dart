@@ -100,7 +100,10 @@ void main() {
       final files = epubFiles()..remove('OPS/toc.ncx');
       files['OPS/nav.xhtml'] =
           '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="urn:extension"><body><nav epub:type="toc"><ol><li><a href="text/one.xhtml">Wrong</a></li></ol></nav></body></html>';
-      expect(EpubBook.fromBytes(zipFiles(files)).navigation, isEmpty);
+      expect(
+        EpubBook.fromBytes(zipFiles(files)).readingNavigation.toc,
+        isEmpty,
+      );
     },
   );
 }

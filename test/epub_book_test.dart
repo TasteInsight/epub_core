@@ -24,8 +24,8 @@ void main() {
       expect(book.spine.map((entry) => entry.item.id), ['one', 'two']);
       expect(book.spine.last.linear, isFalse);
       expect(book.pageProgressionDirection, 'rtl');
-      expect(book.navigation.single.title, 'Part one');
-      final chapter = book.navigation.single.children.single;
+      expect(book.readingNavigation.toc.single.title, 'Part one');
+      final chapter = book.readingNavigation.toc.single.children.single;
       expect(chapter.title, 'A & B');
       expect(chapter.href, 'OPS/text/one.xhtml#start');
       expect(book.cover?.mediaType, 'image/png');
@@ -81,16 +81,16 @@ void main() {
       ..remove('OPS/nav.xhtml')
       ..remove('OPS/toc.ncx');
     final book = EpubBook.fromBytes(zipFiles(files));
-    expect(book.navigation, isEmpty);
+    expect(book.readingNavigation.toc, isEmpty);
     expect(book.spine, hasLength(2));
-    expect(book.warnings, isNotEmpty);
+    expect(book.diagnostics, isNotEmpty);
   });
 
   test('invalid EPUB3 navigation falls back to NCX', () {
     final files = epubFiles()
       ..['OPS/nav.xhtml'] = '<html><body>Empty</body></html>';
     final book = EpubBook.fromBytes(zipFiles(files));
-    expect(book.navigation.single.children.single.title, 'A & B');
+    expect(book.readingNavigation.toc.single.children.single.title, 'A & B');
   });
 
   test('malformed optional guide cover leaves the publication readable', () {
@@ -104,7 +104,7 @@ void main() {
         );
     final book = EpubBook.fromBytes(zipFiles(files));
     expect(book.cover, isNull);
-    expect(book.warnings, isNotEmpty);
+    expect(book.diagnostics, isNotEmpty);
     expect(book.readString(book.spine.first.item.href), contains('Hello'));
   });
 
@@ -113,8 +113,8 @@ void main() {
       ..['OPS/nav.xhtml'] =
           '<nav epub:type="toc"><ol><li><a href="http://[invalid">Broken</a></li></ol></nav>';
     final book = EpubBook.fromBytes(zipFiles(files));
-    expect(book.navigation.single.children.single.title, 'A & B');
-    expect(book.warnings, isNotEmpty);
+    expect(book.readingNavigation.toc.single.children.single.title, 'A & B');
+    expect(book.diagnostics, isNotEmpty);
   });
 
   test('navigation honors XHTML base URI and image alternative labels', () {
@@ -124,9 +124,9 @@ void main() {
           '<nav epub:type="toc"><ol><li><a href="one.xhtml#start">'
           '<img src="label.png" alt="First chapter"/></a></li></ol></nav></body></html>';
     final book = EpubBook.fromBytes(zipFiles(files));
-    expect(book.navigation.single.href, 'OPS/text/one.xhtml#start');
-    expect(book.navigation.single.title, 'First chapter');
-    expect(book.itemByHref(book.navigation.single.href!)?.id, 'one');
+    expect(book.readingNavigation.toc.single.href, 'OPS/text/one.xhtml#start');
+    expect(book.readingNavigation.toc.single.title, 'First chapter');
+    expect(book.itemByHref(book.readingNavigation.toc.single.href!)?.id, 'one');
   });
 
   test(
@@ -134,8 +134,8 @@ void main() {
     () {
       final bytes = corruptCompressedEntry(epubBytes(), 'OPS/nav.xhtml');
       final book = EpubBook.fromBytes(bytes);
-      expect(book.navigation.single.children.single.title, 'A & B');
-      expect(book.warnings, isNotEmpty);
+      expect(book.readingNavigation.toc.single.children.single.title, 'A & B');
+      expect(book.diagnostics, isNotEmpty);
       expect(
         () => book.readBytes('OPS/nav.xhtml'),
         throwsA(errorCode(EpubErrorCode.invalidArchive)),
@@ -150,7 +150,10 @@ void main() {
       'playOrder="20"',
     );
     final book = EpubBook.fromBytes(zipFiles(files));
-    expect(book.navigation.single.children.single.href, endsWith('#start'));
+    expect(
+      book.readingNavigation.toc.single.children.single.href,
+      endsWith('#start'),
+    );
   });
 
   test('UTF-16 XML and content are decoded with BOM and byte order', () {

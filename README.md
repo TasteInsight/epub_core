@@ -48,7 +48,7 @@ void inspectBook(List<int> bytes) {
 | `mediaOverlays` | SMIL 层级、文本引用、音频片段和时钟值 |
 | `packageXml` / `resources` | 原始 OPF 与 ZIP 文件清单 |
 
-`navigation` 提供默认目录，`readingNavigation` 提供目录、页码和地标等导航列表。
+`readingNavigation.toc` 提供目录，`pageList` 和 `landmarks` 分别提供页码与地标导航。
 
 支持的格式、资源限制和应用负责的功能见 [格式支持说明](doc/format-support.md)，测试与外部语料结果见 [验证记录](doc/validation.md)。
 

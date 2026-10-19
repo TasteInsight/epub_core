@@ -66,6 +66,6 @@ void main() {
       ),
       isTrue,
     );
-    expect(book.navigation, isNotEmpty); // NCX remains usable.
+    expect(book.readingNavigation.toc, isNotEmpty); // NCX remains usable.
   });
 }

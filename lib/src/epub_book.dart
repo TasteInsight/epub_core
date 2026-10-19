@@ -116,16 +116,6 @@ final class EpubBook {
   Map<String, String> get spineAttributes => package.spineAttributes;
   Map<String, String> get prefixes => package.prefixes;
 
-  /// The default table of contents, retained for existing consumers.
-  List<EpubNavItem> get navigation => readingNavigation.toc;
-  @Deprecated(
-    'Use readingNavigation for the aggregate of navigation documents.',
-  )
-  EpubNavigation get navigationDocument => readingNavigation;
-  @Deprecated('Use renditionSettings.')
-  EpubRenditionSettings get rendition => renditionSettings;
-  List<String> get warnings =>
-      List.unmodifiable(diagnostics.map((d) => d.toString()));
   List<EpubResourceInfo> get resources => _archive.resources;
 
   /// Selects another rendition while sharing container diagnostics and byte cache.
@@ -262,21 +252,6 @@ final class EpubBook {
   /// Reads a SMIL resource by its container-relative URI.
   EpubMediaOverlay readMediaOverlayByHref(String href) =>
       _readOverlay(itemByHref(href), href);
-
-  /// Legacy lookup. Ambiguous ID/URI matches report ambiguousReference.
-  @Deprecated('Use readMediaOverlayById or readMediaOverlayByHref.')
-  EpubMediaOverlay readMediaOverlay(String idOrHref) {
-    final byId = itemById(idOrHref);
-    final byHref = itemByHref(idOrHref);
-    if (byId != null && byHref != null && byId != byHref) {
-      throw EpubException(
-        EpubErrorCode.ambiguousReference,
-        'Reference matches different manifest ID and URI resources.',
-        path: idOrHref,
-      );
-    }
-    return _readOverlay(byId ?? byHref, idOrHref);
-  }
 
   EpubMediaOverlay _readOverlay(EpubManifestItem? item, String reference) {
     if (item == null || item.mediaType != 'application/smil+xml') {

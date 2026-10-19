@@ -5,7 +5,6 @@ enum EpubLocationSource { resource, expandedXml, entityReplacement }
 enum EpubErrorCode {
   invalidArchive,
   invalidUri,
-  ambiguousReference,
   resourceLimit,
   missingResource,
   invalidXml,

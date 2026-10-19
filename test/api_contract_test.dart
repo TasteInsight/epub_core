@@ -39,7 +39,7 @@ void main() {
       () => book.readRawBytes('http://['),
       () => book.itemByHref('http://['),
       () => book.spineIndexOfHref('http://['),
-      () => book.readMediaOverlay('http://['),
+      () => book.readMediaOverlayByHref('http://['),
       () => EpubPath.isExternal('http://['),
       () => EpubPath.fragment('http://['),
       () => EpubPath.archivePath('bad%ZZ'),
@@ -56,25 +56,15 @@ void main() {
     expect(book.readBytes('absent.xhtml'), isNull);
   });
 
-  test('ambiguous legacy overlay lookup reports ambiguity', () {
-    final book = EpubBook.fromBytes(zipFiles(overlayCollisionFiles()));
-    expect(
-      () => book.readMediaOverlay('target.smil'),
-      throwsA(
-        isA<EpubException>().having(
-          (e) => e.code.name,
-          'code',
-          'ambiguousReference',
-        ),
-      ),
-    );
-  });
-
   test('explicit overlay lookup separates manifest IDs from URIs', () {
     final book = EpubBook.fromBytes(zipFiles(overlayCollisionFiles()));
     expect(book.readMediaOverlayByHref('target.smil').body.id, 'wanted');
     expect(book.readMediaOverlayById('target.smil').body.id, 'other');
     expect(book.readMediaOverlayById('target').body.id, 'wanted');
+    expect(
+      book.readMediaOverlayById('target'),
+      same(book.readMediaOverlayByHref('target.smil')),
+    );
     expect(book.package.metadata, same(book.metadata));
     expect(
       book.renditionSettings.layout,
@@ -115,26 +105,6 @@ void main() {
           EpubErrorCode.resourceLimit,
         ),
       ),
-    );
-  });
-  test('legacy names remain aliases of the same publication data', () {
-    final book = EpubBook.fromBytes(epubBytes());
-    expect(book.navigationDocument, same(book.readingNavigation));
-    expect(book.rendition, same(book.renditionSettings));
-    expect(
-      book.spine.first.rendition,
-      same(book.spine.first.renditionSettings),
-    );
-    expect(
-      book.manifest.first.isXhtml,
-      book.manifest.first.isHtmlContentDocument,
-    );
-    const settings = EpubRendition(layout: 'pre-paginated');
-    expect(settings, isA<EpubRenditionSettings>());
-    final overlayBook = EpubBook.fromBytes(zipFiles(overlayCollisionFiles()));
-    expect(
-      overlayBook.readMediaOverlay('target'),
-      same(overlayBook.readMediaOverlayById('target')),
     );
   });
 }

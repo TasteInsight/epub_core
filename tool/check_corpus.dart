@@ -77,7 +77,9 @@ void main(List<String> arguments) {
         'overlays': overlays,
         'resources': book.resources.length,
         'resourceBytes': resourceBytes,
-        'diagnostics': book.warnings,
+        'diagnostics': [
+          for (final diagnostic in book.diagnostics) diagnostic.toString(),
+        ],
       });
     } catch (error) {
       results.add({'name': name, 'parsed': false, 'error': error.toString()});

@@ -15,7 +15,7 @@ void main() {
         '<nav e:type="landmarks"><ol><li><a e:type="bodymatter" href="text/one.xhtml">Start</a></li></ol></nav>'
         '<nav e:type="loi"><ol><li><a href="text/one.xhtml#image">Illustrations</a></li></ol></nav></body></html>';
     final book = EpubBook.fromBytes(zipFiles(files));
-    expect(book.navigation.single.title, '第一章');
+    expect(book.readingNavigation.toc.single.title, '第一章');
     expect(book.readingNavigation.pageList.single.href, endsWith('#p1'));
     expect(book.readingNavigation.landmarks.single.types, {'bodymatter'});
     expect(
@@ -37,7 +37,7 @@ void main() {
           '<navList class="figures"><navLabel><text>Figures</text></navLabel><navTarget><navLabel><text>Figure 1</text></navLabel><content src="text/one.xhtml#fig1"/></navTarget></navList></ncx>',
     );
     final book = EpubBook.fromBytes(zipFiles(files));
-    expect(book.navigation.single.children, hasLength(1));
+    expect(book.readingNavigation.toc.single.children, hasLength(1));
     expect(book.readingNavigation.pageList.single.attributes['value'], '1');
     expect(
       book.readingNavigation.itemsFor('nav-list').single.title,
@@ -52,7 +52,7 @@ void main() {
       files['OPS/toc.ncx'] =
           '<ncx><navMap>${'<navPoint><navLabel><text>Level</text></navLabel>' * 1000}${'</navPoint>' * 1000}</navMap></ncx>';
       final book = EpubBook.fromBytes(zipFiles(files));
-      expect(book.navigation, isEmpty);
+      expect(book.readingNavigation.toc, isEmpty);
       expect(
         book.diagnostics.any(
           (diagnostic) => diagnostic.code == 'resourceLimit',
@@ -69,7 +69,7 @@ void main() {
         '<h:html xmlns:h="http://www.w3.org/1999/xhtml" xmlns:ops="http://www.idpf.org/2007/ops">'
         '<h:body><h:nav ops:type="toc"><h:ol><h:li><h:a href="text/one.xhtml">Chapter</h:a></h:li></h:ol></h:nav></h:body></h:html>';
     expect(
-      EpubBook.fromBytes(zipFiles(files)).navigation.single.title,
+      EpubBook.fromBytes(zipFiles(files)).readingNavigation.toc.single.title,
       'Chapter',
     );
   });
@@ -81,7 +81,7 @@ void main() {
         '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:e="http://www.idpf.org/2007/ops"><body><nav e:type="toc">'
         '${'<ol><li><span>Group</span>' * 110}<ol><li><a href="text/one.xhtml">$label</a></li></ol>${'</li></ol>' * 110}</nav></body></html>';
     final book = EpubBook.fromBytes(zipFiles(files));
-    var node = book.navigation.single;
+    var node = book.readingNavigation.toc.single;
     final document = node.xmlFragment!.document;
     var count = 0;
     while (true) {

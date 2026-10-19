@@ -18,8 +18,8 @@ Future<void> main(List<String> arguments) async {
     for (final entry in book.spine.where((entry) => entry.linear)) {
       stdout.writeln('${entry.item.href} (${entry.item.mediaType})');
     }
-    for (final warning in book.warnings) {
-      stderr.writeln(warning);
+    for (final diagnostic in book.diagnostics) {
+      stderr.writeln(diagnostic);
     }
   } on EpubException catch (error) {
     stderr.writeln(error);

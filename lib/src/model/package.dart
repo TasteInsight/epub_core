@@ -71,10 +71,6 @@ final class EpubManifestItem {
   /// HTML and XHTML content documents.
   bool get isHtmlContentDocument =>
       mediaType == 'application/xhtml+xml' || mediaType == 'text/html';
-  @Deprecated(
-    'Use isHtmlContentDocument. This legacy name also includes text/html.',
-  )
-  bool get isXhtml => isHtmlContentDocument;
   bool get isImage => mediaType.startsWith('image/');
 }
 
@@ -87,20 +83,15 @@ final class EpubSpineItem {
     required Set<String> properties,
     EpubManifestItem? sourceItem,
     List<EpubManifestItem> fallbackChain = const [],
-    EpubRenditionSettings? renditionSettings,
-    @Deprecated('Use renditionSettings.') EpubRenditionSettings? rendition,
+    this.renditionSettings = const EpubRenditionSettings(),
     Map<String, String> attributes = const {},
-  }) : renditionSettings =
-           renditionSettings ?? rendition ?? const EpubRenditionSettings(),
-       sourceItem = sourceItem ?? item,
+  }) : sourceItem = sourceItem ?? item,
        fallbackChain = List.unmodifiable(fallbackChain),
        attributes = Map.unmodifiable(attributes),
        properties = Set.unmodifiable(properties);
   final EpubManifestItem sourceItem;
   final List<EpubManifestItem> fallbackChain;
   final EpubRenditionSettings renditionSettings;
-  @Deprecated('Use renditionSettings.')
-  EpubRenditionSettings get rendition => renditionSettings;
   final Map<String, String> attributes;
   final String idref;
   final EpubManifestItem item;
@@ -131,10 +122,6 @@ final class EpubCollection {
   String get sourceXml => xmlFragment?.text ?? _sourceXml;
   final Map<String, String> attributes;
 }
-
-/// Compatibility name for rendition presentation settings.
-@Deprecated('Use EpubRenditionSettings.')
-typedef EpubRendition = EpubRenditionSettings;
 
 /// Parsed OPF declarations for one rendition, independent of resource caches.
 final class EpubPackage {
