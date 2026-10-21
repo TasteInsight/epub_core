@@ -1,6 +1,6 @@
 name: epub_core
 description: Pure Dart EPUB 2 and 3 parsing with metadata, reading order, navigation, covers, and lazy resource access for native and web apps.
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/TasteInsight/epub_core
 issue_tracker: https://github.com/TasteInsight/epub_core/issues
 topics:
