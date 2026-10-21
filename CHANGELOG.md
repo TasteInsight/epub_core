@@ -1,3 +1,9 @@
+## Unreleased
+
+- Add an English README and retain the Chinese guide.
+- Document the public API, including resource limits and source coordinates.
+- Publish version tags after CI checks pass.
+
 ## 0.2.0
 
 Initial release.

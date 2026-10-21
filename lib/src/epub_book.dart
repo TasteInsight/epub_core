@@ -29,6 +29,10 @@ import 'vocabulary.dart';
 /// A selected rendition and its shared container resources.
 /// Parsing uses the supplied bytes; resource reads access the in-memory archive.
 final class EpubBook {
+  /// Opens [bytes] as an EPUB archive using the supplied resource [limits].
+  ///
+  /// Selects [packagePath] when supplied, otherwise the default rendition.
+  /// Throws [EpubException] for invalid containers, packages, or resource limits.
   factory EpubBook.fromBytes(
     List<int> bytes, {
     EpubLimits limits = const EpubLimits(),
@@ -96,33 +100,79 @@ final class EpubBook {
   final _itemsByUri = <String, EpubManifestItem>{};
   final _spineByUri = <String, int>{};
   final _overlayCache = <String, EpubMediaOverlay>{};
+
+  /// Shared OCF declarations and optional META-INF documents.
   final EpubContainer container;
+
+  /// Parsed OPF declarations for this rendition.
   final EpubPackage package;
+
+  /// EPUB 3 navigation sections and EPUB 2 NCX lists.
   final EpubNavigation readingNavigation;
+
+  /// Selected cover image declaration, when available.
   final EpubManifestItem? cover;
+
+  /// Container and selected-rendition issues in discovery order.
   final List<EpubDiagnostic> diagnostics;
+
+  /// Selected package document URI relative to the archive root.
   String get packagePath => package.path;
+
+  /// Original XML text of the selected package document.
   String get packageXml => package.sourceXml;
+
+  /// EPUB version declared by the selected package.
   String get version => package.version;
+
+  /// Publication metadata for this rendition.
   EpubMetadata get metadata => package.metadata;
+
+  /// Declared resources in package document order.
   List<EpubManifestItem> get manifest => package.manifest;
+
+  /// Reading-order entries with resolved fallback resources.
   List<EpubSpineItem> get spine => package.spine;
+
+  /// Package-level presentation preferences.
   EpubRenditionSettings get renditionSettings => package.renditionSettings;
+
+  /// Declared page progression direction, defaulting to default.
   String get pageProgressionDirection => package.pageProgressionDirection;
+
+  /// EPUB 2 guide references.
   List<EpubGuideReference> get guide => package.guide;
+
+  /// Media-type handler bindings.
   List<EpubBinding> get bindings => package.bindings;
+
+  /// Top-level package collections.
   List<EpubCollection> get collections => package.collections;
+
+  /// Parsed attributes of the package element.
   Map<String, String> get attributes => package.attributes;
+
+  /// Parsed attributes of the spine element.
   Map<String, String> get spineAttributes => package.spineAttributes;
+
+  /// Property-vocabulary prefixes mapped to their namespace IRIs.
   Map<String, String> get prefixes => package.prefixes;
 
+  /// Archive entries with their literal paths, URIs, and byte sizes.
   List<EpubResourceInfo> get resources => _archive.resources;
 
   /// Selects another rendition while sharing container diagnostics and byte cache.
   EpubBook openRendition(String packagePath) =>
       EpubBook._open(_archive, container, packagePath);
+
+  /// Finds a manifest declaration by ID; returns null when absent.
   EpubManifestItem? itemById(String id) => _itemsById[id];
+
+  /// Finds a manifest declaration by URI, ignoring fragments.
+  /// Queries are also ignored for resources within the archive.
   EpubManifestItem? itemByHref(String href) => _itemsByUri[_resourceKey(href)];
+
+  /// Zero-based reading-order index of a URI, or -1 when absent.
   int spineIndexOfHref(String href) => _spineByUri[_resourceKey(href)] ?? -1;
   String _resourceKey(String href) =>
       _archive.pathFor(href) ??
@@ -215,6 +265,10 @@ final class EpubBook {
     return bytes.asUnmodifiableView();
   }
 
+  /// Decodes a resource as text after font deobfuscation.
+  ///
+  /// Returns null for missing or external resources; invalid text throws
+  /// [EpubException] with [EpubErrorCode.invalidText].
   String? readString(String href) {
     final bytes = readBytes(href);
     return bytes == null ? null : ResourceArchive.decodeText(bytes, href);
